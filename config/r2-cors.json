@@ -1,0 +1,17 @@
+{
+  "rules": [
+    {
+      "allowed": {
+        "origins": [
+          "https://hassanjewels.com",
+          "https://www.hassanjewels.com",
+          "http://localhost:3000"
+        ],
+        "methods": ["GET", "HEAD"],
+        "headers": ["Content-Type"]
+      },
+      "exposeHeaders": ["Content-Length", "ETag"],
+      "maxAgeSeconds": 3600
+    }
+  ]
+}

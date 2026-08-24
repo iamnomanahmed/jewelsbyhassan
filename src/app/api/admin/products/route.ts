@@ -1,0 +1,7 @@
+import { NextRequest,NextResponse } from "next/server";
+import { getDb } from "@/db";
+import { products,productVariants } from "@/db/schema";
+import { getAdmin } from "@/lib/auth";
+import { productSchema } from "@/lib/validation";
+export async function POST(request:NextRequest){if(!await getAdmin())return NextResponse.json({error:"Unauthorized"},{status:401});const parsed=productSchema.safeParse(await request.json().catch(()=>null));if(!parsed.success)return NextResponse.json({error:parsed.error.issues[0]?.message},{status:400});try{const {variants,...data}=parsed.data;const product=await getDb().transaction(async tx=>{const [created]=await tx.insert(products).values({...data,shortDescription:data.shortDescription||null,categoryId:data.categoryId||null,collectionId:data.collectionId||null,salePrice:data.salePrice??null,costPrice:data.costPrice??null,material:data.material||null,weight:data.weight||null,seoTitle:data.seoTitle||null,seoDescription:data.seoDescription||null}).returning();if(variants.length)await tx.insert(productVariants).values(variants.map(variant=>({productId:created.id,sku:variant.sku,size:variant.size||null,color:variant.color||null,price:variant.price??null,salePrice:variant.salePrice??null,stock:variant.stock})));return created});return NextResponse.json({product},{status:201})}catch(error){return NextResponse.json({error:error instanceof Error&&error.message.includes("duplicate")?"Slug or SKU already exists.":"Could not create product."},{status:400})}}
+

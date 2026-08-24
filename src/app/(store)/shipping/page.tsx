@@ -1,0 +1,4 @@
+import { InfoPage } from "@/components/info-page";
+export const metadata={title:"Shipping"};
+export default function ShippingPage(){return <InfoPage eyebrow="Delivery" title="From our hands to yours." intro="Secure delivery throughout Pakistan, with careful packaging and clear updates."><h2>Delivery timing</h2><p>In-stock orders are normally delivered in 3–5 working days after confirmation. Remote areas, public holidays and high-volume periods may add time. We will contact you if an item needs longer preparation.</p><h2>Delivery fee</h2><p>The current delivery fee and any complimentary-delivery threshold are calculated automatically at checkout from the settings maintained by our team.</p><h2>Receiving your parcel</h2><p>Please provide a reachable phone number and complete address. Inspect the outer parcel before accepting it and contact us promptly if it appears materially damaged in transit.</p></InfoPage>}
+

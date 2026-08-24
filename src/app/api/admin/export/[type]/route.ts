@@ -1,0 +1,5 @@
+import { NextRequest,NextResponse } from "next/server";
+import { getAdmin } from "@/lib/auth";
+import { exportWorkbook } from "@/lib/excel";
+export async function GET(request:NextRequest,{params}:{params:Promise<{type:string}>}){if(!await getAdmin())return NextResponse.json({error:"Unauthorized"},{status:401});const {type}=await params;try{const url=new URL(request.url);const ids=(url.searchParams.get("ids")??"").split(",").filter(Boolean);const workbook=await exportWorkbook(type,ids,{status:url.searchParams.get("status")??"",payment:url.searchParams.get("payment")??""});const buffer=await workbook.xlsx.writeBuffer();const filename=type==="template"?"hassan-jewels-product-template.xlsx":`hassan-jewels-${type}-${new Date().toISOString().slice(0,10)}.xlsx`;return new NextResponse(new Uint8Array(buffer),{headers:{"content-type":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","content-disposition":`attachment; filename="${filename}"`,"cache-control":"no-store"}})}catch(error){return NextResponse.json({error:error instanceof Error?error.message:"Export failed"},{status:400})}}
+

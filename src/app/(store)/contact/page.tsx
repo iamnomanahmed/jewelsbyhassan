@@ -1,0 +1,5 @@
+import { ContactForm } from "@/components/contact-form";
+import { getSettings } from "@/lib/settings";
+export const metadata={title:"Contact"};
+export default async function ContactPage(){const settings=await getSettings();return <><section className="bg-emerald-deep px-5 py-16 text-center text-ivory md:py-24"><p className="text-xs font-bold uppercase tracking-[.22em] text-gold-light">We are here</p><h1 className="display-heading mt-3 text-6xl md:text-8xl">Let’s find your piece.</h1><p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-ivory/65">Product advice, order support or a thoughtful question—our team would love to help.</p></section><section className="section-pad bg-ivory"><div className="site-container grid gap-10 lg:grid-cols-[.7fr_1.3fr]"><div><h2 className="font-display text-4xl text-emerald-deep">Hassan Jewels</h2><div className="mt-5 space-y-2 text-sm text-stone-600"><p>{settings.address}</p><p>{settings.phone}</p><p>{settings.email}</p></div></div><ContactForm/></div></section></>}
+
