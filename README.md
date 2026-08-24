@@ -6,7 +6,7 @@ The official supplied Hassan Jewels logo is kept at `public/brand/hassan-jewels-
 
 ## Included workflows
 
-- Storefront: homepage, catalog, search, categories, collections, product variants, persistent bag and drawer, checkout, order confirmation, Managed Neon customer accounts, customer-care pages, SEO sitemap/robots, and Product structured data.
+- Storefront: homepage, catalog, search, categories, collections, product variants, persistent bag and drawer, checkout, order confirmation, customer-care pages, SEO sitemap/robots, and Product structured data.
 - Payments: Cash on Delivery and Easypaisa with server-validated JPG/PNG/WEBP proof uploads to R2.
 - Orders: authoritative server pricing, transactional stock decrement, unique `HJ-100001` numbers, saved-before-WhatsApp handoff, and historical item snapshots.
 - Admin: secure HTTP-only JWT session, dashboard, product/variant/image management, archive/restore/permanent delete, R2 cleanup, taxonomies, customers, orders, payment verification, reviews, centralized settings, account/password rotation, and a secret-safe system readiness screen.
@@ -22,7 +22,7 @@ npm ci
 cp .env.example .env
 ```
 
-Generate separate, strong admin and customer-cookie secrets without printing their values:
+Generate a strong admin session secret without printing its value:
 
 ```bash
 npm run secrets:generate
@@ -60,20 +60,6 @@ Apply migrations through the direct URL after filling `.env.local`:
 ```bash
 npm run db:migrate
 ```
-
-## Managed Neon Auth
-
-Customer registration, sign-in, signed sessions, and `/account` route protection use Managed Neon Auth. Admin access remains separate at `/admin/login` and is never granted by creating a customer account.
-
-Enable Auth for the selected Neon branch, refresh its environment variables, then generate the application-owned cookie secret:
-
-```bash
-CI= npx -y neon@3.6.0 neon-auth enable --project-id YOUR_PROJECT_ID --output json
-CI= npx -y neon@3.6.0 env pull
-npm run secrets:generate
-```
-
-The required production variables are `NEON_AUTH_BASE_URL`, `NEON_AUTH_JWKS_URL`, and a unique `NEON_AUTH_COOKIE_SECRET` of at least 32 characters. Managed Neon Auth is currently a Neon beta feature; review Neon’s release notes before treating its API surface as permanently stable.
 
 ## Cloudflare R2
 
@@ -114,7 +100,7 @@ The checkout WhatsApp handoff receives a one-hour signed proof URL. Admin order 
 ## Vercel deployment
 
 1. Create a Vercel project from this repository.
-2. Add all `.env.example` values in Project Settings → Environment Variables. Use the Neon pooled URL for `DATABASE_URL`, the direct URL for `DATABASE_URL_UNPOOLED`, and copy the locally generated `AUTH_SECRET` and `NEON_AUTH_COOKIE_SECRET` as encrypted values.
+2. Add all required environment values in Project Settings → Environment Variables. Use the Neon pooled URL for `DATABASE_URL`, the direct URL for `DATABASE_URL_UNPOOLED`, and copy the locally generated `AUTH_SECRET` as an encrypted value.
 3. Create the two R2 buckets, connect the public custom domain, apply `config/r2-cors.json`, and add the bucket-scoped S3 credentials.
 4. Run `npm run check:production` locally with production variables, then run `npm run db:migrate` before enabling traffic.
 5. Run the seed once with a strong `ADMIN_PASSWORD`, then remove that seed-only environment variable if desired.
@@ -139,7 +125,6 @@ The generated migration is in `drizzle/`. Regenerate after schema changes with `
 
 - Admin passwords use bcrypt with cost 12; no plaintext password is stored.
 - Admin cookies are HTTP-only, secure in production, SameSite=Lax, and expire after eight hours.
-- Customer sessions are handled by Managed Neon Auth with an application-owned 256-bit-plus cookie secret; customer accounts never authorize admin routes.
 - Administrators can rotate their email, display name, and bcrypt password from Admin → Account; the current password is always required.
 - Order totals and stock are fetched and validated server-side inside a database transaction.
 - Uploads are allow-listed by MIME type, size, and file signature before R2 upload.

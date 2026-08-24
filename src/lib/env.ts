@@ -45,7 +45,7 @@ export function getR2Configuration() {
 }
 
 export type ConfigurationCheck = {
-  id: "database" | "database-direct" | "auth" | "customer-auth" | "site" | "r2-public" | "r2-private";
+  id: "database" | "database-direct" | "auth" | "site" | "r2-public" | "r2-private";
   label: string;
   configured: boolean;
   detail: string;
@@ -73,16 +73,12 @@ export function inspectProductionConfiguration(): ConfigurationCheck[] {
     r2Private = { id: "r2-private", label: "R2 private payments", configured: false, detail: "Configure a separate private bucket" };
   }
   const authSecret = process.env.AUTH_SECRET?.trim() ?? "";
-  const customerAuthUrl = process.env.NEON_AUTH_BASE_URL?.trim() ?? "";
-  const customerAuthSecret = process.env.NEON_AUTH_COOKIE_SECRET?.trim() ?? "";
-  const customerAuthReady = httpsUrl.safeParse(customerAuthUrl).success && customerAuthSecret.length >= 32;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() ?? "";
   const secureSite = httpsUrl.safeParse(siteUrl).success;
   return [
     database,
     directDatabase,
     { id: "auth", label: "Admin session secret", configured: authSecret.length >= 32, detail: authSecret.length >= 32 ? "Configured (value hidden)" : "AUTH_SECRET must be at least 32 characters" },
-    { id: "customer-auth", label: "Managed Neon customer auth", configured: customerAuthReady, detail: customerAuthReady ? `${new URL(customerAuthUrl).hostname} · cookie secret configured` : "Set NEON_AUTH_BASE_URL and a 32+ character NEON_AUTH_COOKIE_SECRET" },
     { id: "site", label: "Canonical site URL", configured: secureSite, detail: secureSite ? new URL(siteUrl).origin : "Set an HTTPS NEXT_PUBLIC_SITE_URL" },
     r2Public,
     r2Private

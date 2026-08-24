@@ -3,7 +3,7 @@ import { chmod, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const envPath = resolve(process.cwd(), ".env");
-const names = ["AUTH_SECRET", "NEON_AUTH_COOKIE_SECRET"] as const;
+const names = ["AUTH_SECRET"] as const;
 
 function generatedSecret() {
   return randomBytes(48).toString("base64url");

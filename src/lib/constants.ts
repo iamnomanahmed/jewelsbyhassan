@@ -17,8 +17,6 @@ export const DEFAULT_SETTINGS: StoreSettingsShape = {
   whatsapp: {
     number: process.env.WHATSAPP_NUMBER ?? "923001234567",
     displayNumber: "+92 300 1234567",
-    floatingEnabled: true,
-    greeting: "Assalam-o-Alaikum Hassan Jewels,\n\nI would like some help regarding your jewelry collection.",
     productTemplate: "Assalam-o-Alaikum Hassan Jewels,\n\nI am interested in:\n\n{{productName}}\n\nPrice: {{price}}\nSelected Size: {{size}}\nSelected Color: {{color}}\n\n{{productUrl}}",
     orderTemplate: "Assalam-o-Alaikum Hassan Jewels,\n\nI would like to place an order.\n\n{{orderDetails}}",
     confirmationTemplate: "Assalam-o-Alaikum {{customerName}},\n\nYour Hassan Jewels order {{orderNumber}} has been confirmed. ✨\n\nOrder Total: {{total}}\n\nWe are now preparing your order.\n\nThank you for choosing Hassan Jewels.",
@@ -42,4 +40,3 @@ export const DEFAULT_SETTINGS: StoreSettingsShape = {
 export const ORDER_STATUSES = ["PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "COMPLETED", "CANCELLED"] as const;
 export const PAYMENT_STATUSES = ["UNPAID", "PENDING_VERIFICATION", "VERIFIED", "REJECTED", "PAID", "REFUNDED"] as const;
 export const REVIEW_STATUSES = ["PENDING", "APPROVED", "REJECTED", "HIDDEN"] as const;
-

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, Search, UserRound, X } from "lucide-react";
+import { Menu, Search, X } from "lucide-react";
 import { useState } from "react";
 import { Logo } from "./logo";
 import { CartButton } from "./cart-button";
@@ -26,7 +26,6 @@ export function SiteHeader({ announcement }: { announcement?: string }) {
           </nav>
           <div className="flex items-center gap-1">
             <Link href="/search" aria-label="Search" className="flex size-11 items-center justify-center rounded-full transition hover:bg-white/10"><Search className="size-5" /></Link>
-            <Link href="/account" aria-label="Customer account" className="flex size-11 items-center justify-center rounded-full transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"><UserRound aria-hidden="true" className="size-5" /></Link>
             <CartButton />
           </div>
         </div>

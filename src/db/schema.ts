@@ -222,8 +222,6 @@ export type StoreSettingsShape = {
   whatsapp: {
     number: string;
     displayNumber: string;
-    floatingEnabled: boolean;
-    greeting: string;
     productTemplate: string;
     orderTemplate: string;
     confirmationTemplate: string;

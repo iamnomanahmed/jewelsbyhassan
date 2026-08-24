@@ -24,7 +24,7 @@ export default async function SystemPage() {
     />
     <section className={`mb-6 flex items-start gap-3 rounded-2xl border p-5 ${ready ? "border-emerald-700/20 bg-emerald-50 text-emerald-950" : "border-amber-700/20 bg-amber-50 text-amber-950"}`}>
       {ready ? <CheckCircle2 aria-hidden="true" className="mt-0.5 size-5 shrink-0"/> : <ShieldAlert aria-hidden="true" className="mt-0.5 size-5 shrink-0"/>}
-      <div><h2 className="font-semibold">{ready ? "Production services are ready" : "Configuration needs attention"}</h2><p className="mt-1 text-sm leading-6">{ready ? "Neon database and customer auth, both R2 buckets, HTTPS, and admin session security passed." : "Review the failed items below, update Vercel environment variables, and redeploy before accepting orders."}</p></div>
+      <div><h2 className="font-semibold">{ready ? "Production services are ready" : "Configuration needs attention"}</h2><p className="mt-1 text-sm leading-6">{ready ? "Neon database, both R2 buckets, HTTPS, and admin session security passed." : "Review the failed items below, update Vercel environment variables, and redeploy before accepting orders."}</p></div>
     </section>
     <div className="grid gap-6 xl:grid-cols-2">
       <section className="admin-card"><h2 className="admin-card-title">Configuration</h2><div className="mt-5 divide-y divide-emerald-deep/8">{status.configuration.map((item) => <div key={item.id} className="flex items-start gap-3 py-4 first:pt-0 last:pb-0"><StatusIcon ok={item.configured}/><div className="min-w-0"><p className="font-semibold text-emerald-deep">{item.label}</p><p className="mt-1 [overflow-wrap:anywhere] text-xs leading-5 text-stone-500">{item.detail}</p></div></div>)}</div></section>
