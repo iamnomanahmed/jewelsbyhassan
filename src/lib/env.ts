@@ -3,7 +3,13 @@ import { z } from "zod";
 const postgresUrl = z.string().trim().min(1).refine((value) => {
   try { return ["postgres:", "postgresql:"].includes(new URL(value).protocol); } catch { return false; }
 }, "must be a valid PostgreSQL connection URL");
-const httpsUrl = z.string().trim().url().refine((value) => new URL(value).protocol === "https:", "must use HTTPS");
+const httpsUrl = z.string().trim().url().refine((value) => {
+  try {
+    return new URL(value).protocol === "https:";
+  } catch {
+    return false;
+  }
+}, "must use HTTPS");
 const bucketName = z.string().trim().regex(/^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$/, "must be a valid R2 bucket name");
 
 function required(name: string) {
