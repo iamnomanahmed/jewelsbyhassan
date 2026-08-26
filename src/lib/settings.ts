@@ -1,7 +1,9 @@
 import { eq } from "drizzle-orm";
+import { unstable_cache } from "next/cache";
 import { getDb } from "@/db";
 import { storeSettings, type StoreSettingsShape } from "@/db/schema";
 import { DEFAULT_SETTINGS } from "./constants";
+import { CACHE_TAGS } from "./cache-invalidation";
 
 function mergeSettings(data?: Partial<StoreSettingsShape> | null): StoreSettingsShape {
   if (!data) return DEFAULT_SETTINGS;
@@ -17,10 +19,14 @@ function mergeSettings(data?: Partial<StoreSettingsShape> | null): StoreSettings
   };
 }
 
+const getStoredSettings = unstable_cache(async () => {
+  const [record] = await getDb().select({ data: storeSettings.data }).from(storeSettings).where(eq(storeSettings.id, "main")).limit(1);
+  return mergeSettings(record?.data);
+}, ["store-settings-v1"], { tags: [CACHE_TAGS.settings], revalidate: 60 * 60 });
+
 export async function getSettings(): Promise<StoreSettingsShape> {
   try {
-    const [record] = await getDb().select().from(storeSettings).where(eq(storeSettings.id, "main")).limit(1);
-    return mergeSettings(record?.data);
+    return await getStoredSettings();
   } catch {
     return DEFAULT_SETTINGS;
   }
@@ -32,4 +38,3 @@ export async function saveSettings(data: StoreSettingsShape) {
     .values({ id: "main", data })
     .onConflictDoUpdate({ target: storeSettings.id, set: { data, updatedAt: new Date() } });
 }
-

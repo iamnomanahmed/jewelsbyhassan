@@ -6,6 +6,7 @@ import { deleteFromR2 } from "@/lib/r2/delete";
 import { createOrder } from "@/lib/orders";
 import { generateOrderWhatsAppMessage, generateWhatsAppUrl } from "@/lib/whatsapp";
 import { rateLimit } from "@/lib/rate-limit";
+import { revalidateCatalog } from "@/lib/cache-invalidation";
 
 export async function POST(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0] ?? "unknown";
@@ -25,6 +26,7 @@ export async function POST(request: NextRequest) {
       proof = await uploadToR2(file, "payments", `checkout-${crypto.randomUUID()}`);
     }
     const order = await createOrder(parsed.data, settings.delivery, proof);
+    revalidateCatalog();
     const message = generateOrderWhatsAppMessage(settings.whatsapp.orderTemplate, { orderNumber: order.orderNumber, customerName: order.customer.fullName, phone: order.customer.phone, city: parsed.data.customer.city, address: parsed.data.customer.address, subtotal: order.subtotal, deliveryFee: order.deliveryFee, total: order.total, paymentMethod: parsed.data.paymentMethod, proofUrl: order.proofUrl, items: order.items });
     return NextResponse.json({ orderNumber: order.orderNumber, whatsappUrl: generateWhatsAppUrl(settings.whatsapp.number, message) }, { status: 201 });
   } catch (error) {

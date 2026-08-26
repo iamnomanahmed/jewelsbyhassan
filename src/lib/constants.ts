@@ -6,8 +6,8 @@ export const DEFAULT_SETTINGS: StoreSettingsShape = {
   phone: "+92 300 1234567",
   address: "Lahore, Pakistan",
   announcement: "Complimentary delivery on orders over Rs. 15,000",
-  logoUrl: "/brand/hassan-jewels-logo.png",
-  faviconUrl: "/brand/hassan-jewels-logo.png",
+  logoUrl: "/brand/hassan-jewels-logo.webp",
+  faviconUrl: "/brand/hassan-jewels-icon.png",
   colors: {
     primary: "#071C16",
     secondary: "#123A2D",

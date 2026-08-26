@@ -12,7 +12,9 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "**.r2.cloudflarestorage.com" },
       { protocol: "https", hostname: "assets.hassanjewels.com" }
     ],
-    formats: ["image/avif", "image/webp"]
+    formats: ["image/avif", "image/webp"],
+    qualities: [75, 82, 88],
+    minimumCacheTTL: 60 * 60 * 24
   },
   poweredByHeader: false
 };
