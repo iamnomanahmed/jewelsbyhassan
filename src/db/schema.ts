@@ -14,9 +14,9 @@ import {
 } from "drizzle-orm/pg-core";
 
 export const productStatus = pgEnum("product_status", ["DRAFT", "PUBLISHED", "ARCHIVED"]);
-export const orderStatus = pgEnum("order_status", ["PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "COMPLETED", "CANCELLED"]);
+export const orderStatus = pgEnum("order_status", ["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"]);
 export const paymentMethod = pgEnum("payment_method", ["COD", "EASYPAISA"]);
-export const paymentStatus = pgEnum("payment_status", ["UNPAID", "PENDING_VERIFICATION", "VERIFIED", "REJECTED", "PAID", "REFUNDED"]);
+export const paymentStatus = pgEnum("payment_status", ["UNPAID", "PENDING_VERIFICATION", "VERIFIED", "REJECTED", "PAY_ON_DELIVERY", "PAID", "REFUNDED"]);
 export const reviewStatus = pgEnum("review_status", ["PENDING", "APPROVED", "REJECTED", "HIDDEN"]);
 export const assetOwner = pgEnum("asset_owner", ["BRANDING", "PRODUCT", "VARIANT", "CATEGORY", "COLLECTION", "PAYMENT", "REVIEW"]);
 
@@ -146,13 +146,15 @@ export const orders = pgTable("orders", {
   notes: text("notes"),
   subtotal: integer("subtotal").notNull(),
   deliveryFee: integer("delivery_fee").notNull(),
+  discount: integer("discount").default(0).notNull(),
   total: integer("total").notNull(),
   status: orderStatus("status").default("PENDING").notNull(),
   paymentMethod: paymentMethod("payment_method").notNull(),
   paymentStatus: paymentStatus("payment_status").default("UNPAID").notNull(),
+  paymentVerifiedAt: timestamp("payment_verified_at", { withTimezone: true }),
+  paymentVerifiedBy: uuid("payment_verified_by").references(() => adminUsers.id, { onDelete: "set null" }),
+  paymentRejectedAt: timestamp("payment_rejected_at", { withTimezone: true }),
   confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
-  processingAt: timestamp("processing_at", { withTimezone: true }),
-  shippedAt: timestamp("shipped_at", { withTimezone: true }),
   completedAt: timestamp("completed_at", { withTimezone: true }),
   cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
   confirmationOpenedAt: timestamp("confirmation_opened_at", { withTimezone: true }),
@@ -168,11 +170,24 @@ export const orderItems = pgTable("order_items", {
   productName: varchar("product_name", { length: 180 }).notNull(),
   sku: varchar("sku", { length: 80 }).notNull(),
   variantLabel: varchar("variant_label", { length: 140 }),
+  size: varchar("size", { length: 40 }),
+  color: varchar("color", { length: 60 }),
   imageUrl: text("image_url"),
   quantity: integer("quantity").notNull(),
   unitPrice: integer("unit_price").notNull(),
   totalPrice: integer("total_price").notNull()
 }, (table) => [index("order_item_order_idx").on(table.orderId)]);
+
+export const orderEvents = pgTable("order_events", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  orderId: uuid("order_id").notNull().references(() => orders.id, { onDelete: "cascade" }),
+  type: varchar("type", { length: 80 }).notNull(),
+  fromStatus: varchar("from_status", { length: 40 }),
+  toStatus: varchar("to_status", { length: 40 }),
+  adminUserId: uuid("admin_user_id").references(() => adminUsers.id, { onDelete: "set null" }),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+}, (table) => [index("order_event_order_idx").on(table.orderId, table.createdAt)]);
 
 export const paymentProofs = pgTable("payment_proofs", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -187,6 +202,7 @@ export const paymentProofs = pgTable("payment_proofs", {
 export const reviewInvitations = pgTable("review_invitations", {
   id: uuid("id").defaultRandom().primaryKey(),
   orderId: uuid("order_id").notNull().references(() => orders.id, { onDelete: "cascade" }),
+  token: varchar("token", { length: 128 }),
   tokenHash: varchar("token_hash", { length: 64 }).notNull(),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   openedAt: timestamp("opened_at", { withTimezone: true }),
@@ -224,7 +240,11 @@ export type StoreSettingsShape = {
     displayNumber: string;
     productTemplate: string;
     orderTemplate: string;
+    customerTemplate: string;
+    paymentVerifiedTemplate: string;
+    paymentIssueTemplate: string;
     confirmationTemplate: string;
+    cancellationTemplate: string;
     reviewTemplate: string;
   };
   easypaisa: { enabled: boolean; accountTitle: string; number: string; instructions: string };

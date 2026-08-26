@@ -176,7 +176,7 @@ export function ImportExportPanel({ initialOrders }: { initialOrders: DeletableO
         </label>
         <select aria-label="Filter deletable orders by status" value={orderStatus} onChange={(event) => { setOrderStatus(event.target.value); setOrderPage(1); }} className="min-h-11 rounded-xl border border-emerald-deep/15 bg-white px-3 text-sm">
           <option value="">All statuses</option>
-          {["PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "COMPLETED", "CANCELLED"].map((status) => <option key={status}>{status}</option>)}
+          {["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"].map((status) => <option key={status}>{status}</option>)}
         </select>
       </div>
 

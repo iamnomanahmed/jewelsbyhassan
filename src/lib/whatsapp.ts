@@ -15,6 +15,24 @@ function template(source: string, values: Record<string, string>) {
   return source.replace(/{{(\w+)}}/g, (_, key: string) => values[key] ?? "—");
 }
 
+type AdminMessageValues = {
+  customerName: string;
+  orderNumber: string;
+  total: number;
+  paymentMethod: "COD" | "EASYPAISA";
+  reviewLink?: string;
+};
+
+function adminMessage(source: string, values: AdminMessageValues) {
+  return template(source, {
+    customerName: values.customerName,
+    orderNumber: values.orderNumber,
+    total: formatPrice(values.total),
+    paymentMethod: values.paymentMethod === "COD" ? "Cash on Delivery" : "Easypaisa",
+    reviewLink: values.reviewLink ?? "—"
+  });
+}
+
 export function generateProductInquiryMessage(
   source: string,
   product: { name: string; price: number; size?: string; color?: string; url: string }
@@ -57,11 +75,26 @@ export function generateOrderWhatsAppMessage(source: string, order: MessageOrder
   return template(source, { orderDetails: details });
 }
 
-export function generateConfirmationWhatsAppMessage(source: string, values: { customerName: string; orderNumber: string; total: number }) {
-  return template(source, { ...values, total: formatPrice(values.total) });
+export function generateConfirmationWhatsAppMessage(source: string, values: AdminMessageValues) {
+  return adminMessage(source, values);
 }
 
-export function generateCompletedOrderWhatsAppMessage(source: string, values: { customerName: string; orderNumber: string; reviewLink: string }) {
-  return template(source, values);
+export function generateCompletedOrderWhatsAppMessage(source: string, values: AdminMessageValues & { reviewLink: string }) {
+  return adminMessage(source, values);
 }
 
+export function generateCustomerWhatsAppMessage(source: string, values: AdminMessageValues) {
+  return adminMessage(source, values);
+}
+
+export function generatePaymentVerifiedWhatsAppMessage(source: string, values: AdminMessageValues) {
+  return adminMessage(source, values);
+}
+
+export function generatePaymentIssueWhatsAppMessage(source: string, values: AdminMessageValues) {
+  return adminMessage(source, values);
+}
+
+export function generateCancellationWhatsAppMessage(source: string, values: AdminMessageValues) {
+  return adminMessage(source, values);
+}

@@ -1,6 +1,6 @@
 import { and, eq, gte, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/db";
-import { addresses, assets, customers, orderItems, orders, paymentProofs, products, productVariants } from "@/db/schema";
+import { addresses, assets, customers, orderEvents, orderItems, orders, paymentProofs, products, productVariants } from "@/db/schema";
 import type { z } from "zod";
 import type { checkoutSchema } from "./validation";
 import type { uploadToR2 } from "./r2/upload";
@@ -50,10 +50,16 @@ export async function createOrder(input: Checkout, deliveryConfig: { fee: number
       addressSnapshot: { address: input.customer.address, area: input.customer.area, city: input.customer.city, postalCode: input.customer.postalCode || undefined },
       notes: input.customer.notes || null, subtotal, deliveryFee, total,
       paymentMethod: input.paymentMethod,
-      paymentStatus: input.paymentMethod === "EASYPAISA" ? "PENDING_VERIFICATION" : "UNPAID"
+      paymentStatus: input.paymentMethod === "EASYPAISA" ? "PENDING_VERIFICATION" : "PAY_ON_DELIVERY"
     }).returning();
     const orderNumber = `HJ-${order.sequence}`;
     await tx.update(orders).set({ orderNumber }).where(eq(orders.id, order.id));
+    await tx.insert(orderEvents).values({
+      orderId: order.id,
+      type: "ORDER_CREATED",
+      toStatus: "PENDING",
+      metadata: { paymentMethod: input.paymentMethod }
+    });
 
     for (const item of authoritative) {
       const [stockedProduct] = await tx.update(products).set({ stock: sql`${products.stock} - ${item.input.quantity}`, updatedAt: new Date() }).where(and(eq(products.id, item.product.id), gte(products.stock, item.input.quantity))).returning({ id: products.id });
@@ -62,7 +68,7 @@ export async function createOrder(input: Checkout, deliveryConfig: { fee: number
         const [stockedVariant] = await tx.update(productVariants).set({ stock: sql`${productVariants.stock} - ${item.input.quantity}`, updatedAt: new Date() }).where(and(eq(productVariants.id, item.variant.id), gte(productVariants.stock, item.input.quantity))).returning({ id: productVariants.id });
         if (!stockedVariant) throw new Error(`${item.product.name}: selected option just sold out`);
       }
-      await tx.insert(orderItems).values({ orderId: order.id, productId: item.product.id, variantId: item.variant?.id ?? null, productName: item.product.name, sku: item.variant?.sku ?? item.product.sku, variantLabel: item.variantLabel, imageUrl: item.imageUrl, quantity: item.input.quantity, unitPrice: item.unitPrice, totalPrice: item.unitPrice * item.input.quantity });
+      await tx.insert(orderItems).values({ orderId: order.id, productId: item.product.id, variantId: item.variant?.id ?? null, productName: item.product.name, sku: item.variant?.sku ?? item.product.sku, variantLabel: item.variantLabel, size: item.variant?.size ?? null, color: item.variant?.color ?? null, imageUrl: item.imageUrl, quantity: item.input.quantity, unitPrice: item.unitPrice, totalPrice: item.unitPrice * item.input.quantity });
     }
     if (proof) await tx.insert(paymentProofs).values({ orderId: order.id, ...proof, url: `private:${proof.storageKey}` });
     return { id: order.id, orderNumber, customer, subtotal, deliveryFee, total, proofUrl: proof?.url ?? null, items: authoritative.map((item) => ({ productName: item.product.name, variantLabel: item.variantLabel, quantity: item.input.quantity, unitPrice: item.unitPrice })) };
