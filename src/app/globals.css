@@ -68,6 +68,9 @@ button, input, textarea, select { font: inherit; }
 .gold-line-link:hover::after, .gold-line-link:focus-visible::after { transform: scaleX(1); }
 
 .luxury-button { transition: color var(--motion-fast) ease, background-color var(--motion-fast) ease, border-color var(--motion-fast) ease, opacity var(--motion-fast) ease, transform var(--motion-fast) var(--ease-interaction); }
+.primary-contrast { color: #f8f5ee !important; }
+.gold-contrast { color: #061712 !important; }
+.text-stone-500 { color: #6c645e; }
 .luxury-button:active:not(:disabled) { transform: scale(.98); }
 .luxury-product-card .product-image-frame { border: 1px solid transparent; transition: border-color var(--motion-standard) ease; }
 .luxury-product-card .quick-action { transition: opacity var(--motion-standard) var(--ease-luxury), transform var(--motion-standard) var(--ease-luxury); }

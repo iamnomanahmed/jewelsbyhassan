@@ -12,8 +12,8 @@ type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
 export function buttonClasses(variant: Props["variant"] = "primary", size: Props["size"] = "md") {
   return cn(
     "luxury-button inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-full font-sans text-sm font-semibold tracking-[0.02em] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
-    variant === "primary" && "bg-emerald-deep text-ivory hover:bg-emerald-rich",
-    variant === "gold" && "bg-gold text-emerald-ink hover:bg-gold-light",
+    variant === "primary" && "primary-contrast bg-emerald-deep text-ivory hover:bg-emerald-rich",
+    variant === "gold" && "gold-contrast bg-gold text-emerald-ink hover:bg-gold-light",
     variant === "outline" && "border border-current bg-transparent hover:bg-current/5",
     variant === "ghost" && "bg-transparent hover:bg-current/10",
     variant === "danger" && "bg-red-700 text-white hover:bg-red-800",

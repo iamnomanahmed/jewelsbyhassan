@@ -10,6 +10,6 @@ export function SiteFooter({ settings }: { settings: StoreSettingsShape }) {
       <div><h2 className="footer-heading">Care</h2><div className="footer-links"><Link href="/contact">Contact</Link><Link href="/faq">FAQ</Link><Link href="/shipping">Shipping</Link><Link href="/returns">Returns</Link></div></div>
       <div><h2 className="footer-heading">Visit</h2><div className="space-y-3 text-sm leading-6 text-ivory/65"><p>{settings.address}</p><a href={`tel:${settings.phone}`}>{settings.phone}</a><a className="block" href={`mailto:${settings.email}`}>{settings.email}</a></div></div>
     </div>
-    <div className="border-t border-white/10"><div className="site-container flex flex-col gap-2 py-5 text-xs text-ivory/45 sm:flex-row sm:items-center sm:justify-between"><p>© {new Date().getFullYear()} Hassan Jewels. All rights reserved.</p><p>Secure checkout · Crafted with care</p></div></div>
+    <div className="border-t border-white/10"><div className="site-container flex flex-col gap-2 py-5 text-xs text-ivory/55 sm:flex-row sm:items-center sm:justify-between"><p>© {new Date().getFullYear()} Hassan Jewels. All rights reserved.</p><p>Secure checkout · Crafted with care</p></div></div>
   </footer>;
 }

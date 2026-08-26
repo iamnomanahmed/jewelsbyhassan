@@ -29,6 +29,6 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, them
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="en" className={`${displayFont.variable} ${sansFont.variable}`}><body>
     <a href="#main-content" className="skip-link">Skip to main content</a>{children}
-    <SpeedInsights />
+    {process.env.VERCEL ? <SpeedInsights /> : null}
   </body></html>;
 }

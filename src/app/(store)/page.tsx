@@ -25,7 +25,7 @@ export default async function HomePage() {
   ];
   return <>
     <section className="relative min-h-[78svh] overflow-hidden bg-emerald-ink text-ivory md:min-h-[84svh]">
-      <div className="hero-media absolute inset-0"><LuxuryImage src="/images/hero-jewelry.webp" alt="Gold jewelry on deep emerald velvet" fill priority quality={88} sizes="100vw" className="object-cover object-[64%_center]" /></div>
+      <div className="hero-media absolute inset-0"><LuxuryImage src="/images/hero-jewelry.webp" alt="Gold jewelry on deep emerald velvet" fill preload fetchPriority="high" quality={88} sizes="100vw" className="object-cover object-[64%_center]" /></div>
       <div className="absolute inset-0 bg-gradient-to-r from-emerald-ink via-emerald-ink/80 to-emerald-ink/5" />
       <div className="site-container relative z-10 flex min-h-[78svh] items-center py-16 md:min-h-[84svh]">
         <div className="hero-sequence max-w-2xl"><Logo logoUrl={settings.logoUrl} className="mb-7 h-20 w-40 opacity-95 md:h-28 md:w-56" /><p className="mb-5 text-xs font-semibold uppercase tracking-[0.24em] text-champagne">The new signature collection</p><h1 className="display-heading text-[clamp(3.5rem,8vw,7.7rem)]">Jewelry made to be remembered.</h1><p className="mt-6 max-w-xl text-base leading-7 text-ivory/75 md:text-lg">Discover timeless pieces designed to make every moment extraordinary.</p><div className="mt-9 flex flex-col gap-3 sm:flex-row"><Link href="/shop" className={buttonClasses("gold", "lg")}>Explore the collection <ArrowRight className="size-4" /></Link><Link href="/shop?sort=newest" className={buttonClasses("outline", "lg")}>Shop new arrivals</Link></div></div>
