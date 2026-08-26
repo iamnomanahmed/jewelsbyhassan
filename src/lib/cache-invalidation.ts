@@ -1,5 +1,5 @@
 import "server-only";
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 export const CACHE_TAGS = {
   catalog: "storefront-catalog",
@@ -23,4 +23,5 @@ export function revalidateReviews() {
 
 export function revalidateSettings() {
   expire(CACHE_TAGS.settings);
+  revalidatePath("/", "layout");
 }

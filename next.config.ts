@@ -4,7 +4,10 @@ const nextConfig: NextConfig = {
   experimental: {
     // The compiler API keeps type validation in-process and avoids an extra CLI
     // subprocess. `npm run typecheck` remains the canonical strict type gate.
-    useTypeScriptCli: false
+    useTypeScriptCli: false,
+    // A single prerender worker shares the build-time settings lookup instead of
+    // opening several concurrent serverless database connections.
+    cpus: 1
   },
   images: {
     remotePatterns: [

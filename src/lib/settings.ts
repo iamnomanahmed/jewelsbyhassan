@@ -24,7 +24,13 @@ const getStoredSettings = unstable_cache(async () => {
   return mergeSettings(record?.data);
 }, ["store-settings-v1"], { tags: [CACHE_TAGS.settings], revalidate: 60 * 60 });
 
+let buildSettings: Promise<StoreSettingsShape> | undefined;
+
 export async function getSettings(): Promise<StoreSettingsShape> {
+  if (process.env.NEXT_PHASE === "phase-production-build") {
+    buildSettings ??= getStoredSettings().catch(() => DEFAULT_SETTINGS);
+    return buildSettings;
+  }
   try {
     return await getStoredSettings();
   } catch {

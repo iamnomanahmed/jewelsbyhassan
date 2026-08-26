@@ -15,21 +15,27 @@ export async function createOrder(input: Checkout, deliveryConfig: { fee: number
   const uniqueProductIds = [...new Set(input.items.map((item) => item.productId))];
   const uniqueVariantIds = [...new Set(input.items.map((item) => item.variantId).filter(Boolean))] as string[];
   const [productRows, variantRows, imageRows] = await Promise.all([
-    db.select().from(products).where(and(inArray(products.id, uniqueProductIds), eq(products.status, "PUBLISHED"))),
-    uniqueVariantIds.length ? db.select().from(productVariants).where(inArray(productVariants.id, uniqueVariantIds)) : Promise.resolve([]),
-    db.select().from(assets).where(and(eq(assets.ownerType, "PRODUCT"), inArray(assets.ownerId, uniqueProductIds), eq(assets.primary, true)))
+    db.select({ id: products.id, name: products.name, sku: products.sku, price: products.price, salePrice: products.salePrice, stock: products.stock })
+      .from(products).where(and(inArray(products.id, uniqueProductIds), eq(products.status, "PUBLISHED"))),
+    uniqueVariantIds.length ? db.select({ id: productVariants.id, productId: productVariants.productId, sku: productVariants.sku, size: productVariants.size, color: productVariants.color, price: productVariants.price, salePrice: productVariants.salePrice, stock: productVariants.stock })
+      .from(productVariants).where(inArray(productVariants.id, uniqueVariantIds)) : Promise.resolve([]),
+    db.select({ ownerId: assets.ownerId, url: assets.url }).from(assets).where(and(eq(assets.ownerType, "PRODUCT"), inArray(assets.ownerId, uniqueProductIds), eq(assets.primary, true)))
   ]);
 
+  const productMap = new Map(productRows.map((row) => [row.id, row]));
+  const variantMap = new Map(variantRows.map((row) => [row.id, row]));
+  const imageMap = new Map(imageRows.map((row) => [row.ownerId, row.url]));
   const authoritative = input.items.map((item) => {
-    const product = productRows.find((row) => row.id === item.productId);
+    const product = productMap.get(item.productId);
     if (!product) throw new Error("A product in your bag is no longer available");
-    const variant = item.variantId ? variantRows.find((row) => row.id === item.variantId && row.productId === product.id) : null;
+    const selectedVariant = item.variantId ? variantMap.get(item.variantId) : null;
+    const variant = selectedVariant?.productId === product.id ? selectedVariant : null;
     if (item.variantId && !variant) throw new Error(`${product.name}: the selected option is unavailable`);
     const availableStock = variant?.stock ?? product.stock;
     if (availableStock < item.quantity) throw new Error(`${product.name}: only ${availableStock} available`);
     const unitPrice = variant?.salePrice ?? variant?.price ?? product.salePrice ?? product.price;
     const variantLabel = [variant?.size && `Size ${variant.size}`, variant?.color].filter(Boolean).join(" · ") || null;
-    return { input: item, product, variant, unitPrice, variantLabel, imageUrl: imageRows.find((row) => row.ownerId === product.id)?.url ?? null };
+    return { input: item, product, variant, unitPrice, variantLabel, imageUrl: imageMap.get(product.id) ?? null };
   });
   const subtotal = authoritative.reduce((sum, item) => sum + item.unitPrice * item.input.quantity, 0);
   const deliveryFee = deliveryConfig.freeThreshold > 0 && subtotal >= deliveryConfig.freeThreshold ? 0 : deliveryConfig.fee;
@@ -37,12 +43,12 @@ export async function createOrder(input: Checkout, deliveryConfig: { fee: number
 
   const result = await db.transaction(async (tx) => {
     const normalizedWhatsApp = normalizePakistanWhatsAppNumber(input.customer.whatsapp);
-    const [existing] = await tx.select().from(customers).where(eq(customers.phone, input.customer.phone)).limit(1);
+    const [existing] = await tx.select({ id: customers.id }).from(customers).where(eq(customers.phone, input.customer.phone)).limit(1);
     let customer;
     if (existing) {
-      [customer] = await tx.update(customers).set({ fullName: input.customer.fullName, whatsapp: normalizedWhatsApp, email: input.customer.email || null, orderCount: sql`${customers.orderCount} + 1`, totalSpent: sql`${customers.totalSpent} + ${total}`, updatedAt: new Date() }).where(eq(customers.id, existing.id)).returning();
+      [customer] = await tx.update(customers).set({ fullName: input.customer.fullName, whatsapp: normalizedWhatsApp, email: input.customer.email || null, orderCount: sql`${customers.orderCount} + 1`, totalSpent: sql`${customers.totalSpent} + ${total}`, updatedAt: new Date() }).where(eq(customers.id, existing.id)).returning({ id: customers.id, fullName: customers.fullName, phone: customers.phone, whatsapp: customers.whatsapp, email: customers.email });
     } else {
-      [customer] = await tx.insert(customers).values({ fullName: input.customer.fullName, phone: input.customer.phone, whatsapp: normalizedWhatsApp, email: input.customer.email || null, orderCount: 1, totalSpent: total }).returning();
+      [customer] = await tx.insert(customers).values({ fullName: input.customer.fullName, phone: input.customer.phone, whatsapp: normalizedWhatsApp, email: input.customer.email || null, orderCount: 1, totalSpent: total }).returning({ id: customers.id, fullName: customers.fullName, phone: customers.phone, whatsapp: customers.whatsapp, email: customers.email });
     }
     await tx.insert(addresses).values({ customerId: customer.id, address: input.customer.address, area: input.customer.area, city: input.customer.city, postalCode: input.customer.postalCode || null });
     const [order] = await tx.insert(orders).values({
@@ -68,8 +74,8 @@ export async function createOrder(input: Checkout, deliveryConfig: { fee: number
         const [stockedVariant] = await tx.update(productVariants).set({ stock: sql`${productVariants.stock} - ${item.input.quantity}`, updatedAt: new Date() }).where(and(eq(productVariants.id, item.variant.id), gte(productVariants.stock, item.input.quantity))).returning({ id: productVariants.id });
         if (!stockedVariant) throw new Error(`${item.product.name}: selected option just sold out`);
       }
-      await tx.insert(orderItems).values({ orderId: order.id, productId: item.product.id, variantId: item.variant?.id ?? null, productName: item.product.name, sku: item.variant?.sku ?? item.product.sku, variantLabel: item.variantLabel, size: item.variant?.size ?? null, color: item.variant?.color ?? null, imageUrl: item.imageUrl, quantity: item.input.quantity, unitPrice: item.unitPrice, totalPrice: item.unitPrice * item.input.quantity });
     }
+    await tx.insert(orderItems).values(authoritative.map((item) => ({ orderId: order.id, productId: item.product.id, variantId: item.variant?.id ?? null, productName: item.product.name, sku: item.variant?.sku ?? item.product.sku, variantLabel: item.variantLabel, size: item.variant?.size ?? null, color: item.variant?.color ?? null, imageUrl: item.imageUrl, quantity: item.input.quantity, unitPrice: item.unitPrice, totalPrice: item.unitPrice * item.input.quantity })));
     if (proof) await tx.insert(paymentProofs).values({ orderId: order.id, ...proof, url: `private:${proof.storageKey}` });
     return { id: order.id, orderNumber, customer, subtotal, deliveryFee, total, proofUrl: proof?.url ?? null, items: authoritative.map((item) => ({ productName: item.product.name, variantLabel: item.variantLabel, quantity: item.input.quantity, unitPrice: item.unitPrice })) };
   });

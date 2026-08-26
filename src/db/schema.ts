@@ -84,8 +84,9 @@ export const products = pgTable("products", {
 }, (table) => [
   uniqueIndex("product_slug_idx").on(table.slug),
   uniqueIndex("product_sku_idx").on(table.sku),
-  index("product_status_idx").on(table.status),
-  index("product_category_idx").on(table.categoryId)
+  index("product_status_created_idx").on(table.status, table.createdAt),
+  index("product_status_category_idx").on(table.status, table.categoryId),
+  index("product_status_collection_idx").on(table.status, table.collectionId)
 ]);
 
 export const assets = pgTable("assets", {
@@ -100,7 +101,7 @@ export const assets = pgTable("assets", {
   sortOrder: integer("sort_order").default(0).notNull(),
   primary: boolean("primary").default(false).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
-}, (table) => [index("asset_owner_idx").on(table.ownerType, table.ownerId), index("asset_storage_idx").on(table.storageKey)]);
+}, (table) => [index("asset_owner_primary_idx").on(table.ownerType, table.ownerId, table.primary, table.sortOrder), index("asset_storage_idx").on(table.storageKey)]);
 
 export const productVariants = pgTable("product_variants", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -125,7 +126,7 @@ export const customers = pgTable("customers", {
   orderCount: integer("order_count").default(0).notNull(),
   totalSpent: integer("total_spent").default(0).notNull(),
   ...audit
-}, (table) => [index("customer_phone_idx").on(table.phone)]);
+}, (table) => [index("customer_phone_idx").on(table.phone), index("customer_total_spent_idx").on(table.totalSpent)]);
 
 export const addresses = pgTable("addresses", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -160,7 +161,7 @@ export const orders = pgTable("orders", {
   confirmationOpenedAt: timestamp("confirmation_opened_at", { withTimezone: true }),
   reviewRequestOpenedAt: timestamp("review_request_opened_at", { withTimezone: true }),
   ...audit
-}, (table) => [uniqueIndex("order_number_idx").on(table.orderNumber), index("order_status_idx").on(table.status)]);
+}, (table) => [uniqueIndex("order_number_idx").on(table.orderNumber), index("order_created_idx").on(table.createdAt), index("order_status_created_idx").on(table.status, table.createdAt)]);
 
 export const orderItems = pgTable("order_items", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -224,7 +225,7 @@ export const reviews = pgTable("reviews", {
   status: reviewStatus("status").default("PENDING").notNull(),
   featured: boolean("featured").default(false).notNull(),
   ...audit
-}, (table) => [uniqueIndex("review_invitation_idx").on(table.invitationId), index("review_status_idx").on(table.status)]);
+}, (table) => [uniqueIndex("review_invitation_idx").on(table.invitationId), index("review_status_featured_created_idx").on(table.status, table.featured, table.createdAt), index("review_created_idx").on(table.createdAt)]);
 
 export type StoreSettingsShape = {
   storeName: string;

@@ -51,8 +51,3 @@ export function MotionProvider({ children }: { children: ReactNode }) {
 
   return children;
 }
-
-export function RouteTransition({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
-  return <div key={pathname} className="route-transition">{children}</div>;
-}

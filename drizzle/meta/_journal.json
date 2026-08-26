@@ -15,6 +15,13 @@
       "when": 1787726581083,
       "tag": "0001_sweet_demogoblin",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787751958385,
+      "tag": "0002_premium_lady_mastermind",
+      "breakpoints": true
     }
   ]
 }

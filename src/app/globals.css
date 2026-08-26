@@ -50,7 +50,6 @@ button, input, textarea, select { font: inherit; }
 .admin-card { border: 1px solid rgb(10 42 32 / .08); border-radius: 1rem; background: white; padding: 1.25rem; box-shadow: 0 1px 2px rgb(0 0 0 / .03); transition: border-color var(--motion-fast) ease, transform var(--motion-standard) var(--ease-luxury); }
 .admin-card-title { font-family: var(--font-display); font-size: 1.7rem; font-weight: 600; line-height: 1.1; color: #0a2a20; }
 
-.route-transition { animation: route-enter var(--motion-reveal) var(--ease-luxury) both; }
 .motion-enabled [data-reveal] { transition: opacity var(--motion-reveal) var(--ease-luxury), transform var(--motion-reveal) var(--ease-luxury); }
 .motion-enabled [data-reveal][data-reveal-state="hidden"] { opacity: 0; transform: translate3d(0, 16px, 0); }
 .motion-enabled [data-reveal="fade"][data-reveal-state="hidden"] { transform: none; }
@@ -116,7 +115,6 @@ button, input, textarea, select { font: inherit; }
 
 @keyframes luxury-shimmer { to { transform: translateX(110%); } }
 @keyframes luxury-spin { to { transform: rotate(360deg); } }
-@keyframes route-enter { from { opacity: .86; transform: translate3d(0, 4px, 0); } to { opacity: 1; transform: none; } }
 @keyframes hero-image { from { opacity: .72; transform: scale(1.03); } to { opacity: 1; transform: scale(1); } }
 @keyframes hero-copy { from { opacity: 0; transform: translate3d(0, 13px, 0); } to { opacity: 1; transform: none; } }
 @keyframes state-reveal { from { opacity: 0; transform: translate3d(0, 6px, 0) scale(.99); } to { opacity: 1; transform: none; } }
@@ -148,5 +146,5 @@ button, input, textarea, select { font: inherit; }
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   .luxury-skeleton::after { display: none; }
   .luxury-image { opacity: 1; transform: none; }
-  .motion-enabled [data-reveal], .motion-enabled [data-reveal] > *, .hero-media, .hero-sequence > *, .route-transition, .success-sequence > * { opacity: 1 !important; transform: none !important; transition-delay: 0s !important; }
+  .motion-enabled [data-reveal], .motion-enabled [data-reveal] > *, .hero-media, .hero-sequence > *, .success-sequence > * { opacity: 1 !important; transform: none !important; transition-delay: 0s !important; }
 }

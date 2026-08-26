@@ -109,10 +109,15 @@ export function getCatalog(options: CatalogOptions = {}) {
 
 export async function getCatalogPage(options: CatalogOptions = {}) {
   const limit = Math.min(Math.max(options.limit ?? 24, 1), 48);
-  const page = Math.max(options.page ?? 1, 1);
-  const normalized = { ...options, limit, page };
-  const [items, total] = await Promise.all([cachedCatalog(normalized), cachedCatalogCount(normalized)]);
-  return { items, total, page, pageCount: Math.max(1, Math.ceil(total / limit)), pageSize: limit };
+  const requestedPage = Math.max(options.page ?? 1, 1);
+  const normalized = { ...options, limit, page: requestedPage };
+  const countOptions = { ...options, limit: undefined, page: undefined };
+  const [initialItems, total] = await Promise.all([cachedCatalog(normalized), cachedCatalogCount(countOptions)]);
+  let items = initialItems;
+  const pageCount = Math.max(1, Math.ceil(total / limit));
+  const page = Math.min(requestedPage, pageCount);
+  if (page !== requestedPage) items = await cachedCatalog({ ...normalized, page });
+  return { items, total, page, pageCount, pageSize: limit };
 }
 
 async function queryProductBySlug(slug: string) {
