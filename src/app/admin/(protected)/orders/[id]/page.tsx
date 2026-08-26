@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { LuxuryImage } from "@/components/luxury-image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -124,7 +124,7 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
         <div className="flex items-center gap-3"><span className="grid size-11 place-items-center rounded-2xl bg-emerald-soft text-emerald-deep"><Package aria-hidden="true" className="size-5"/></span><div><p className="text-[.65rem] font-bold uppercase tracking-[.14em] text-gold">Historical snapshots</p><h2 id="items-title" className="admin-card-title">Order items</h2></div></div>
         <div className="mt-6 divide-y divide-emerald-deep/8">
           {data.items.map((item) => <article key={item.id} className="grid grid-cols-[72px_minmax(0,1fr)] gap-4 py-5 first:pt-0 last:pb-0 sm:grid-cols-[88px_minmax(0,1fr)_auto] sm:items-center">
-            <div className="relative aspect-square overflow-hidden rounded-2xl bg-stone-100">{item.imageUrl ? <Image src={item.imageUrl} alt={item.productName} fill sizes="88px" className="object-cover"/> : <div className="grid h-full place-items-center text-[.6rem] text-stone-400">No image</div>}</div>
+            <div className="relative aspect-square overflow-hidden rounded-2xl bg-stone-100">{item.imageUrl ? <LuxuryImage src={item.imageUrl} alt={item.productName} fill sizes="88px" className="object-cover"/> : <div className="grid h-full place-items-center text-[.6rem] text-stone-400">No image</div>}</div>
             <div className="min-w-0"><h3 className="font-display text-xl font-semibold leading-tight text-emerald-deep sm:text-2xl">{item.productName}</h3><p className="mt-1 text-xs font-semibold uppercase tracking-[.08em] text-stone-400">SKU {item.sku}</p><dl className="mt-3 grid grid-cols-2 gap-x-5 gap-y-2 text-xs sm:grid-cols-4"><div><dt className="text-stone-400">Size</dt><dd className="font-semibold text-stone-700">{item.size || "—"}</dd></div><div><dt className="text-stone-400">Color</dt><dd className="font-semibold text-stone-700">{item.color || "—"}</dd></div><div><dt className="text-stone-400">Quantity</dt><dd className="font-semibold text-stone-700">{item.quantity}</dd></div><div><dt className="text-stone-400">Unit price</dt><dd className="font-semibold text-stone-700">{formatPrice(item.unitPrice)}</dd></div></dl></div>
             <div className="col-start-2 border-t border-emerald-deep/8 pt-3 text-left sm:col-start-auto sm:border-0 sm:pl-5 sm:text-right"><p className="text-[.62rem] font-bold uppercase tracking-[.12em] text-stone-400">Line total</p><p className="mt-1 font-semibold text-emerald-deep">{formatPrice(item.totalPrice)}</p></div>
           </article>)}

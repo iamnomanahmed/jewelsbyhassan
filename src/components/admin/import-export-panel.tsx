@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Download, FileSpreadsheet, Search, Trash2, Upload } from "lucide-react";
 import { Button, buttonClasses } from "@/components/ui/button";
 import { formatPrice } from "@/lib/utils";
+import { DownloadButton } from "@/components/admin/download-button";
 
 type Preview = {
   rows: {
@@ -35,7 +36,7 @@ export function ImportExportPanel({ initialOrders }: { initialOrders: DeletableO
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [mode, setMode] = useState("create");
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<"preview" | "import" | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -78,24 +79,29 @@ export function ImportExportPanel({ initialOrders }: { initialOrders: DeletableO
 
   const send = async (importing: boolean) => {
     if (!file) return;
-    setBusy(true);
+    setBusy(importing ? "import" : "preview");
     setError("");
     setMessage("");
     const body = new FormData();
     body.set("file", file);
     if (importing) body.set("mode", mode);
     else body.set("preview", "1");
-    const response = await fetch("/api/admin/import/products", { method: "POST", body });
-    const result = await response.json();
-    setBusy(false);
-    if (!response.ok) {
-      setError(result.error);
-      if (result.rows) setPreview(result);
-      return;
+    try {
+      const response = await fetch("/api/admin/import/products", { method: "POST", body });
+      const result = await response.json();
+      if (!response.ok) {
+        setError(result.error);
+        if (result.rows) setPreview(result);
+        return;
+      }
+      if (importing) {
+        setMessage(`Import complete: ${result.created} created, ${result.updated} updated, ${result.skipped} skipped${result.errors.length ? `, ${result.errors.length} errors` : ""}.`);
+      } else setPreview(result);
+    } catch {
+      setError(importing ? "Products could not be imported. Please try again." : "The workbook could not be validated. Please try again.");
+    } finally {
+      setBusy(null);
     }
-    if (importing) {
-      setMessage(`Import complete: ${result.created} created, ${result.updated} updated, ${result.skipped} skipped${result.errors.length ? `, ${result.errors.length} errors` : ""}.`);
-    } else setPreview(result);
   };
 
   const deleteSelectedOrders = async () => {
@@ -129,7 +135,7 @@ export function ImportExportPanel({ initialOrders }: { initialOrders: DeletableO
 
   return <>
     <div className="grid gap-6 xl:grid-cols-[1.2fr_.8fr]">
-      <section className="admin-card">
+      <section aria-busy={Boolean(busy) || undefined} className="admin-card">
         <div className="flex items-center gap-3">
           <span className="grid size-11 place-items-center rounded-xl bg-emerald-soft text-emerald-deep"><Upload aria-hidden="true" className="size-5"/></span>
           <div><h2 className="admin-card-title">Product import</h2><p className="text-xs text-stone-500">Upload, preview, validate, then choose an explicit import mode.</p></div>
@@ -141,9 +147,9 @@ export function ImportExportPanel({ initialOrders }: { initialOrders: DeletableO
           <input type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" className="sr-only" onChange={(event) => { setFile(event.target.files?.[0] ?? null); setPreview(null); setMessage(""); }}/>
         </label>
         <div className="mt-5 flex flex-wrap items-end gap-3">
-          <Button type="button" disabled={!file || busy} onClick={() => send(false)}>Preview & validate</Button>
+          <Button type="button" disabled={!file || Boolean(busy)} loading={busy === "preview"} loadingLabel="Validating workbook…" onClick={() => send(false)}>Preview & validate</Button>
           <label><span className="field-label">Import mode</span><select value={mode} onChange={(event) => setMode(event.target.value)} className="min-h-11 rounded-xl border border-emerald-deep/15 bg-white px-3 text-sm"><option value="create">Create only</option><option value="update">Update existing by SKU</option><option value="upsert">Create + update</option></select></label>
-          <Button type="button" variant="gold" disabled={!preview || preview.invalid > 0 || busy} onClick={() => send(true)}>{busy ? "Working…" : "Import validated rows"}</Button>
+          <Button type="button" variant="gold" disabled={!preview || preview.invalid > 0 || Boolean(busy)} loading={busy === "import"} loadingLabel="Importing products…" onClick={() => send(true)}>Import validated rows</Button>
         </div>
         {error ? <p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p> : null}
         {message ? <p role="status" className="mt-4 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800">{message}</p> : null}
@@ -155,7 +161,7 @@ export function ImportExportPanel({ initialOrders }: { initialOrders: DeletableO
 
       <aside className="space-y-6">
         <section className="admin-card"><h2 className="admin-card-title">Start with the template</h2><p className="mt-3 text-sm leading-6 text-stone-500">Headers, a realistic example and formatting instructions are included.</p><Link href="/api/admin/export/template" className={`${buttonClasses("primary", "md")} mt-5`}><Download aria-hidden="true" className="size-4"/>Download Excel template</Link></section>
-        <section className="admin-card"><h2 className="admin-card-title">Export data</h2><p className="mt-3 text-sm text-stone-500">Download live operational records as true .xlsx workbooks.</p><div className="mt-5 grid gap-2">{["products", "orders", "customers", "reviews"].map((type) => <Link key={type} href={`/api/admin/export/${type}`} className="flex min-h-11 items-center justify-between rounded-xl border border-emerald-deep/10 px-4 text-sm font-semibold capitalize text-emerald-deep hover:border-gold">{type}<Download aria-hidden="true" className="size-4"/></Link>)}</div></section>
+        <section className="admin-card"><h2 className="admin-card-title">Export data</h2><p className="mt-3 text-sm text-stone-500">Download live operational records as true .xlsx workbooks.</p><div className="mt-5 grid gap-2">{["products", "orders", "customers", "reviews"].map((type) => <DownloadButton key={type} href={`/api/admin/export/${type}`} label={type} loadingLabel={`Exporting ${type}…`} filename={`hassan-jewels-${type}.xlsx`} className="flex min-h-11 items-center justify-between rounded-xl border border-emerald-deep/10 px-4 text-sm font-semibold capitalize text-emerald-deep hover:border-gold"/>)}</div></section>
       </aside>
     </div>
 
@@ -211,7 +217,7 @@ export function ImportExportPanel({ initialOrders }: { initialOrders: DeletableO
         <p className="mt-2 text-sm leading-6 text-red-900">This will permanently delete {selectedOrders.length} selected order{selectedOrders.length === 1 ? "" : "s"} from the main database, including order items, payment-proof records, review invitations, and reviews. This cannot be undone.</p>
         <div className="mt-3 max-h-28 overflow-auto rounded-xl border border-red-200 bg-white px-4 py-2 text-xs text-red-950">{selectedOrders.map((order) => <p key={order.id} className="py-1"><strong>{order.orderNumber}</strong> · {order.customerName}</p>)}</div>
         <label className="mt-4 block max-w-md"><span className="field-label !text-red-950">Type DELETE to confirm</span><input autoFocus value={confirmationText} onChange={(event) => setConfirmationText(event.target.value)} autoComplete="off" className="min-h-11 w-full rounded-xl border border-red-300 bg-white px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700"/></label>
-        <div className="mt-4 flex flex-wrap gap-2"><Button type="button" variant="danger" disabled={confirmationText !== "DELETE" || deleting} onClick={deleteSelectedOrders}>{deleting ? "Deleting…" : `Permanently delete ${selectedOrders.length}`}</Button><Button type="button" variant="outline" disabled={deleting} onClick={() => { setConfirmingDeletion(false); setConfirmationText(""); }}>Cancel</Button></div>
+        <div className="mt-4 flex flex-wrap gap-2"><Button type="button" variant="danger" disabled={confirmationText !== "DELETE"} loading={deleting} loadingLabel="Deleting order data…" onClick={deleteSelectedOrders}>{`Permanently delete ${selectedOrders.length}`}</Button><Button type="button" variant="outline" disabled={deleting} onClick={() => { setConfirmingDeletion(false); setConfirmationText(""); }}>Cancel</Button></div>
       </div> : null}
 
       {deletionError ? <p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{deletionError}</p> : null}

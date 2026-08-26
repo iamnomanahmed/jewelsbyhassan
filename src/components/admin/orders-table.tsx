@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowUpDown, ChevronLeft, ChevronRight, Download, Search } from "lucide-react";
+import { ArrowUpDown, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import type { getAdminOrders } from "@/lib/admin-data";
 import { formatPrice } from "@/lib/utils";
 import { StatusBadge } from "./status-badge";
+import { DownloadButton } from "./download-button";
 
 type Row = Awaited<ReturnType<typeof getAdminOrders>>[number];
 type SortKey = "date" | "order" | "customer" | "items" | "payment" | "status" | "total";
@@ -78,9 +79,7 @@ export function OrdersTable({ rows }: { rows: Row[] }) {
       <select aria-label="Filter payment method" value={payment} onChange={(event) => { setPayment(event.target.value); resetPage(); }} className="min-h-11 rounded-xl border border-emerald-deep/15 bg-white px-3 text-sm">
         <option value="">All payments</option><option>COD</option><option>EASYPAISA</option>
       </select>
-      <a href={`/api/admin/export/orders?ids=${selected.join(",")}&status=${status}&payment=${payment}`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-emerald-deep px-4 text-xs font-semibold text-white">
-        <Download className="size-4"/>{selected.length ? `Export ${selected.length}` : "Export filtered"}
-      </a>
+      <DownloadButton href={`/api/admin/export/orders?ids=${selected.join(",")}&status=${status}&payment=${payment}`} label={selected.length ? `Export ${selected.length}` : "Export filtered"} filename="hassan-jewels-orders.xlsx" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-emerald-deep px-4 text-xs font-semibold text-white"/>
     </div>
 
     {selected.length ? <div className="flex min-h-12 flex-wrap items-center gap-3 border-b border-emerald-deep/8 bg-gold/8 px-4 text-xs">

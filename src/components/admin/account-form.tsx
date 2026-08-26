@@ -29,21 +29,27 @@ export function AccountForm({ admin }: { admin: { name: string; email: string } 
       requestAnimationFrame(() => errorRef.current?.focus());
       return;
     }
-    const response = await fetch("/api/admin/account", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
-    const result = await response.json();
-    setBusy(false);
-    if (!response.ok) {
-      setError({ message: result.error ?? "Could not update the administrator account", field: result.field });
+    try {
+      const response = await fetch("/api/admin/account", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+      const result = await response.json();
+      if (!response.ok) {
+        setError({ message: result.error ?? "Could not update the administrator account", field: result.field });
+        requestAnimationFrame(() => errorRef.current?.focus());
+        return;
+      }
+      const form = formRef.current;
+      if (form) {
+        (form.elements.namedItem("currentPassword") as HTMLInputElement).value = "";
+        (form.elements.namedItem("newPassword") as HTMLInputElement).value = "";
+        (form.elements.namedItem("confirmPassword") as HTMLInputElement).value = "";
+      }
+      setSuccess("Administrator account updated successfully.");
+    } catch {
+      setError({ message: "The server could not be reached. Please try again" });
       requestAnimationFrame(() => errorRef.current?.focus());
-      return;
+    } finally {
+      setBusy(false);
     }
-    const form = formRef.current;
-    if (form) {
-      (form.elements.namedItem("currentPassword") as HTMLInputElement).value = "";
-      (form.elements.namedItem("newPassword") as HTMLInputElement).value = "";
-      (form.elements.namedItem("confirmPassword") as HTMLInputElement).value = "";
-    }
-    setSuccess("Administrator account updated successfully.");
   }} className="max-w-3xl space-y-6">
     {error ? <div ref={errorRef} tabIndex={-1} role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 outline-none focus:ring-2 focus:ring-red-700"><strong>We could not save your account.</strong><p className="mt-1">{error.message}. Correct the highlighted field and try again.</p></div> : null}
     {success ? <div aria-live="polite" className="flex items-center gap-2 rounded-xl border border-emerald-700/20 bg-emerald-50 p-4 text-sm text-emerald-900"><CheckCircle2 aria-hidden="true" className="size-5"/>{success}</div> : null}
@@ -67,6 +73,6 @@ export function AccountForm({ admin }: { admin: { name: string; email: string } 
         </div>
       </div>
     </section>
-    <Button type="submit" size="lg" disabled={busy}><Save aria-hidden="true" className="size-4"/>{busy ? "Saving…" : "Save account"}</Button>
+    <Button type="submit" size="lg" loading={busy} loadingLabel="Saving account…"><Save aria-hidden="true" className="size-4"/>Save account</Button>
   </form>;
 }
