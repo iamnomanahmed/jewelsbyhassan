@@ -1,4 +1,5 @@
 import Image from "next/image";
+<<<<<<< ours
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -155,3 +156,14 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
     </div>
   </div>;
 }
+=======
+import { notFound } from "next/navigation";
+import { AdminPageHeader } from "@/components/admin/page-header";
+import { OrderActions } from "@/components/admin/order-actions";
+import { StatusBadge } from "@/components/admin/status-badge";
+import { getAdminOrder } from "@/lib/admin-data";
+import { formatPrice } from "@/lib/utils";
+export const dynamic="force-dynamic";
+export default async function AdminOrderPage({params}:{params:Promise<{id:string}>}){const {id}=await params;const data=await getAdminOrder(id);if(!data)notFound();return <><AdminPageHeader eyebrow="Order details" title={data.order.orderNumber} description={`Placed ${data.order.createdAt.toLocaleString("en-PK")}`}/><div className="grid gap-6 xl:grid-cols-[1.15fr_.85fr]"><div className="space-y-6"><section className="admin-card"><div className="flex items-start justify-between"><div><h2 className="admin-card-title">Customer</h2><p className="mt-3 font-semibold text-emerald-deep">{data.customer.fullName}</p><p className="text-sm text-stone-500">{data.customer.phone} · WhatsApp {data.customer.whatsapp}</p>{data.customer.email?<p className="text-sm text-stone-500">{data.customer.email}</p>:null}</div><StatusBadge value={data.order.status}/></div><div className="mt-5 rounded-xl bg-[#f7f8f5] p-4 text-sm leading-6"><p>{data.order.addressSnapshot.address}</p><p>{data.order.addressSnapshot.area}, {data.order.addressSnapshot.city} {data.order.addressSnapshot.postalCode}</p></div>{data.order.notes?<p className="mt-4 rounded-xl border border-gold/20 bg-champagne/15 p-4 text-sm"><strong>Note:</strong> {data.order.notes}</p>:null}</section><section className="admin-card"><h2 className="admin-card-title">Items</h2><div className="mt-5 divide-y divide-emerald-deep/8">{data.items.map(item=><div key={item.id} className="flex items-center gap-4 py-4"><div className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-stone-100">{item.imageUrl?<Image src={item.imageUrl} alt="" fill sizes="64px" className="object-cover"/>:null}</div><div className="min-w-0 flex-1"><p className="font-semibold text-emerald-deep">{item.quantity} × {item.productName}</p><p className="text-xs text-stone-400">{item.sku}{item.variantLabel?` · ${item.variantLabel}`:""}</p></div><p className="font-semibold">{formatPrice(item.totalPrice)}</p></div>)}</div><dl className="ml-auto mt-5 max-w-sm space-y-2 border-t border-emerald-deep/10 pt-5 text-sm"><div className="flex justify-between"><dt>Subtotal</dt><dd>{formatPrice(data.order.subtotal)}</dd></div><div className="flex justify-between"><dt>Delivery</dt><dd>{formatPrice(data.order.deliveryFee)}</dd></div><div className="flex justify-between text-base font-bold"><dt>Total</dt><dd>{formatPrice(data.order.total)}</dd></div></dl></section>{data.proof?<section className="admin-card"><h2 className="admin-card-title">Easypaisa proof</h2><a href={data.proof.url} target="_blank" rel="noreferrer" className="relative mt-5 block aspect-video overflow-hidden rounded-xl bg-stone-100"><Image src={data.proof.url} alt={`Payment proof for ${data.order.orderNumber}`} fill sizes="700px" className="object-contain"/></a></section>:null}</div><OrderActions id={id} initialStatus={data.order.status} initialPaymentStatus={data.order.paymentStatus} hasProof={Boolean(data.proof)}/></div></>}
+
+>>>>>>> theirs

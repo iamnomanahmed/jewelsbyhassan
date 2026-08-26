@@ -71,7 +71,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       const invitation = await ensureReviewInvitation(id, settings.reviews.expiryDays);
       reviewUrl = invitation.reviewUrl;
       message = generateCompletedOrderWhatsAppMessage(settings.whatsapp.reviewTemplate, {
-        ...values,
+        customerName: record.customer.fullName,
+        orderNumber: record.order.orderNumber,
         reviewLink: reviewUrl
       });
       await db.update(orders).set({ reviewRequestOpenedAt: new Date(), updatedAt: new Date() }).where(eq(orders.id, id));

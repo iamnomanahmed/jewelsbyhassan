@@ -118,16 +118,6 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     return NextResponse.json({ order });
   } catch (error) {
     if (error instanceof ConcurrentOrderUpdateError) {
-      const [latest] = await db.select().from(orders).where(eq(orders.id, id)).limit(1);
-      if (parsed.data.status && latest?.status === parsed.data.status) {
-        const reviewUrl = latest.status === "COMPLETED"
-          ? (await ensureReviewInvitation(id, (await getSettings()).reviews.expiryDays)).reviewUrl
-          : undefined;
-        return NextResponse.json({ order: latest, reviewUrl });
-      }
-      if (parsed.data.paymentStatus && latest?.paymentStatus === parsed.data.paymentStatus) {
-        return NextResponse.json({ order: latest });
-      }
       return NextResponse.json({ error: "This order changed in another session. Refresh and try again." }, { status: 409 });
     }
     return NextResponse.json({ error: error instanceof Error ? error.message : "Could not update the order." }, { status: 500 });

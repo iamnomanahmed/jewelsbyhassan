@@ -52,7 +52,7 @@ export function OrderActions({
   const [reviewUrl, setReviewUrl] = useState(initialReviewUrl ?? "");
   const [busy, setBusy] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<Feedback>(null);
-  const [confirmTarget, setConfirmTarget] = useState<Status | "REJECTED_PAYMENT" | null>(null);
+  const [confirmTarget, setConfirmTarget] = useState<Status | null>(null);
 
   const update = async (body: { status?: Status; paymentStatus?: "VERIFIED" | "REJECTED" }, action: string) => {
     setBusy(action);
@@ -155,7 +155,7 @@ export function OrderActions({
           <div className="flex items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.12em] text-stone-400">Payment verification</p><p className="mt-1 text-xs text-stone-500">Easypaisa proof {hasProof ? "is attached" : "is missing"}.</p></div><StatusBadge value={payment}/></div>
           {payment === "PENDING_VERIFICATION" ? <div className="mt-4 grid grid-cols-2 gap-2">
             <Button disabled={Boolean(busy) || !hasProof} onClick={() => void update({ paymentStatus: "VERIFIED" }, "verify-payment")}><Check aria-hidden="true" className="size-4"/>{busy === "verify-payment" ? "Verifying…" : "Verify payment"}</Button>
-            <Button variant="danger" disabled={Boolean(busy) || !hasProof} onClick={() => setConfirmTarget("REJECTED_PAYMENT")}><X aria-hidden="true" className="size-4"/>Reject payment</Button>
+            <Button variant="danger" disabled={Boolean(busy) || !hasProof} onClick={() => void update({ paymentStatus: "REJECTED" }, "reject-payment")}><X aria-hidden="true" className="size-4"/>{busy === "reject-payment" ? "Rejecting…" : "Reject payment"}</Button>
           </div> : null}
           {payment === "VERIFIED" ? <Button className="mt-4 w-full" variant="outline" disabled={Boolean(busy)} onClick={() => void compose("payment_verified")}><MessageCircle aria-hidden="true" className="size-4"/>Send payment verified message</Button> : null}
           {payment === "REJECTED" ? <Button className="mt-4 w-full" variant="outline" disabled={Boolean(busy)} onClick={() => void compose("payment_issue")}><CircleAlert aria-hidden="true" className="size-4"/>Send payment issue message</Button> : null}
@@ -183,12 +183,12 @@ export function OrderActions({
 
     {confirmTarget ? <div role="dialog" aria-modal="true" aria-labelledby="status-confirm-title" className="fixed inset-0 z-[100] grid place-items-center bg-emerald-ink/70 p-4 backdrop-blur-sm">
       <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl sm:p-8">
-        <span className={`grid size-12 place-items-center rounded-2xl ${confirmTarget === "CANCELLED" || confirmTarget === "REJECTED_PAYMENT" ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-800"}`}>{confirmTarget === "CANCELLED" ? <Ban aria-hidden="true" className="size-5"/> : confirmTarget === "REJECTED_PAYMENT" ? <CircleAlert aria-hidden="true" className="size-5"/> : <CheckCircle2 aria-hidden="true" className="size-5"/>}</span>
-        <h2 id="status-confirm-title" className="mt-5 font-display text-3xl font-semibold text-emerald-deep">{confirmTarget === "CANCELLED" ? "Cancel this order?" : confirmTarget === "REJECTED_PAYMENT" ? "Reject this payment proof?" : "Mark order as completed?"}</h2>
-        <p className="mt-3 text-sm leading-6 text-stone-600">{confirmTarget === "CANCELLED" ? "The order will move to its final cancelled state. You can then notify the customer on WhatsApp." : confirmTarget === "REJECTED_PAYMENT" ? "The payment will be marked as rejected. You can then open WhatsApp with a payment-issue message for the customer." : "Use this only after the order has been fully fulfilled or delivered. A secure review invitation will be generated."}</p>
+        <span className={`grid size-12 place-items-center rounded-2xl ${confirmTarget === "CANCELLED" ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-800"}`}>{confirmTarget === "CANCELLED" ? <Ban aria-hidden="true" className="size-5"/> : <CheckCircle2 aria-hidden="true" className="size-5"/>}</span>
+        <h2 id="status-confirm-title" className="mt-5 font-display text-3xl font-semibold text-emerald-deep">{confirmTarget === "CANCELLED" ? "Cancel this order?" : "Mark order as completed?"}</h2>
+        <p className="mt-3 text-sm leading-6 text-stone-600">{confirmTarget === "CANCELLED" ? "The order will move to its final cancelled state. You can then notify the customer on WhatsApp." : "Use this only after the order has been fully fulfilled or delivered. A secure review invitation will be generated."}</p>
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button variant="outline" disabled={Boolean(busy)} onClick={() => { setConfirmTarget(null); setSelectedStatus(status); }}>Go back</Button>
-          <Button autoFocus variant={confirmTarget === "CANCELLED" || confirmTarget === "REJECTED_PAYMENT" ? "danger" : "primary"} disabled={Boolean(busy)} onClick={() => confirmTarget === "REJECTED_PAYMENT" ? void update({ paymentStatus: "REJECTED" }, "reject-payment") : void update({ status: confirmTarget }, `status-${confirmTarget}`)}>{busy ? "Updating order…" : confirmTarget === "CANCELLED" ? "Cancel order" : confirmTarget === "REJECTED_PAYMENT" ? "Reject payment" : "Mark completed"}</Button>
+          <Button autoFocus variant={confirmTarget === "CANCELLED" ? "danger" : "primary"} disabled={Boolean(busy)} onClick={() => void update({ status: confirmTarget }, `status-${confirmTarget}`)}>{busy ? "Updating order…" : confirmTarget === "CANCELLED" ? "Cancel order" : "Mark completed"}</Button>
         </div>
       </div>
     </div> : null}

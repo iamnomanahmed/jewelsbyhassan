@@ -75,12 +75,12 @@ export function generateOrderWhatsAppMessage(source: string, order: MessageOrder
   return template(source, { orderDetails: details });
 }
 
-export function generateConfirmationWhatsAppMessage(source: string, values: AdminMessageValues) {
-  return adminMessage(source, values);
+export function generateConfirmationWhatsAppMessage(source: string, values: { customerName: string; orderNumber: string; total: number }) {
+  return template(source, { ...values, total: formatPrice(values.total) });
 }
 
-export function generateCompletedOrderWhatsAppMessage(source: string, values: AdminMessageValues & { reviewLink: string }) {
-  return adminMessage(source, values);
+export function generateCompletedOrderWhatsAppMessage(source: string, values: { customerName: string; orderNumber: string; reviewLink: string }) {
+  return template(source, values);
 }
 
 export function generateCustomerWhatsAppMessage(source: string, values: AdminMessageValues) {
