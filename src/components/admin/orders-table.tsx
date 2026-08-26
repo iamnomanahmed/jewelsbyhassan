@@ -74,7 +74,7 @@ export function OrdersTable({ rows }: { rows: Row[] }) {
       </label>
       <select aria-label="Filter order status" value={status} onChange={(event) => { setStatus(event.target.value); resetPage(); }} className="min-h-11 rounded-xl border border-emerald-deep/15 bg-white px-3 text-sm">
         <option value="">All statuses</option>
-        {["PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "COMPLETED", "CANCELLED"].map((value) => <option key={value}>{value}</option>)}
+        {["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"].map((value) => <option key={value}>{value}</option>)}
       </select>
       <select aria-label="Filter payment method" value={payment} onChange={(event) => { setPayment(event.target.value); resetPage(); }} className="min-h-11 rounded-xl border border-emerald-deep/15 bg-white px-3 text-sm">
         <option value="">All payments</option><option>COD</option><option>EASYPAISA</option>

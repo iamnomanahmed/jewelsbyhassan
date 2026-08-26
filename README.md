@@ -47,6 +47,8 @@ Create a Neon project in the [Neon Console](https://console.neon.tech), select a
 - `DATABASE_URL`: enable connection pooling. The hostname must contain `-pooler`.
 - `DATABASE_URL_UNPOOLED`: disable connection pooling. This direct URL is reserved for Drizzle migrations.
 
+Both URLs must use the same Neon endpoint ID; the pooled hostname is the direct hostname with `-pooler` added before the first dot. `npm run check:production` rejects mismatched runtime and migration endpoints.
+
 Both URLs should include `sslmode=require`. Keep `DB_POOL_MAX=1` unless load testing demonstrates a reason to raise it; the application reuses one client per warm serverless instance and Neon handles global pooling.
 
 The Neon CLI configures project context and agent onboarding. If the current `neon@4.0.0`/`neonctl@4.0.0` publish reports a missing `@neon/config@1.0.2`, use the verified prior release:

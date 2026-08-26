@@ -24,6 +24,11 @@ function validated(name: string, schema: z.ZodType<string>, value = required(nam
   return parsed.data;
 }
 
+function normalizedNeonEndpoint(hostname: string) {
+  const [endpoint, ...domain] = hostname.split(".");
+  return [endpoint.replace(/-pooler$/, ""), ...domain].join(".");
+}
+
 export function getDatabaseConfiguration() {
   const url = validated("DATABASE_URL", postgresUrl);
   const directUrl = validated("DATABASE_URL_UNPOOLED", postgresUrl, process.env.DATABASE_URL_UNPOOLED?.trim() || url);
@@ -62,8 +67,21 @@ export function inspectProductionConfiguration(): ConfigurationCheck[] {
   let directDatabase: ConfigurationCheck;
   try {
     const config = getDatabaseConfiguration();
-    database = { id: "database", label: "Neon runtime database", configured: !config.isNeon || config.pooled, detail: config.isNeon ? `${config.hostname} · ${config.pooled ? "pooled" : "use the -pooler endpoint"}` : `${config.hostname} · PostgreSQL` };
-    directDatabase = { id: "database-direct", label: "Migration database", configured: Boolean(process.env.DATABASE_URL_UNPOOLED), detail: process.env.DATABASE_URL_UNPOOLED ? new URL(config.directUrl).hostname : "DATABASE_URL_UNPOOLED is not set" };
+    const directHostname = new URL(config.directUrl).hostname;
+    const sameNeonEndpoint = !config.isNeon || normalizedNeonEndpoint(config.hostname) === normalizedNeonEndpoint(directHostname);
+    const mismatchDetail = `Runtime ${config.hostname} and migration ${directHostname} target different Neon endpoints`;
+    database = {
+      id: "database",
+      label: "Neon runtime database",
+      configured: (!config.isNeon || config.pooled) && sameNeonEndpoint,
+      detail: !sameNeonEndpoint ? mismatchDetail : config.isNeon ? `${config.hostname} · ${config.pooled ? "pooled" : "use the -pooler endpoint"}` : `${config.hostname} · PostgreSQL`
+    };
+    directDatabase = {
+      id: "database-direct",
+      label: "Migration database",
+      configured: Boolean(process.env.DATABASE_URL_UNPOOLED) && sameNeonEndpoint,
+      detail: !sameNeonEndpoint ? mismatchDetail : process.env.DATABASE_URL_UNPOOLED ? directHostname : "DATABASE_URL_UNPOOLED is not set"
+    };
   } catch (error) {
     database = { id: "database", label: "Neon runtime database", configured: false, detail: error instanceof Error ? error.message : "Database configuration is invalid" };
     directDatabase = { id: "database-direct", label: "Migration database", configured: false, detail: "Set a direct Neon connection for migrations" };
