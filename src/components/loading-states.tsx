@@ -93,9 +93,9 @@ export function CartSkeleton() {
 }
 
 export function CheckoutContentSkeleton() {
-  return <LoadingRegion label="Loading secure checkout" className="grid gap-8 lg:grid-cols-[1.05fr_.95fr] lg:gap-12">
-    <div className="space-y-6">{Array.from({ length: 2 }, (_, card) => <div key={card} className="rounded-2xl bg-white p-6"><Skeleton className="h-8 w-40 rounded-lg" /><div className="mt-6 grid grid-cols-2 gap-4">{Array.from({ length: 6 }, (_, index) => <div key={index}><Skeleton className="h-3 w-20 rounded-full" /><Skeleton className="mt-2 h-12 rounded-xl" /></div>)}</div></div>)}</div>
-    <Skeleton className="order-first h-[34rem] rounded-2xl !bg-emerald-deep/90 lg:order-last" />
+  return <LoadingRegion label="Loading secure checkout" className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(20rem,.95fr)] lg:gap-10 xl:gap-12">
+    <div className="min-w-0 space-y-4 sm:space-y-6">{Array.from({ length: 2 }, (_, card) => <div key={card} className="rounded-2xl bg-white p-4 sm:p-6"><Skeleton className="h-8 w-40 max-w-full rounded-lg" /><div className="mt-6 grid gap-4 sm:grid-cols-2">{Array.from({ length: 6 }, (_, index) => <div key={index} className="min-w-0"><Skeleton className="h-3 w-20 max-w-full rounded-full" /><Skeleton className="mt-2 h-12 rounded-xl" /></div>)}</div></div>)}</div>
+    <Skeleton className="h-[28rem] min-w-0 rounded-2xl !bg-emerald-deep/90 sm:h-[34rem]" />
   </LoadingRegion>;
 }
 

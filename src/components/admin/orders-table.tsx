@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowUpDown, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { ArrowRight, ArrowUpDown, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import type { getAdminOrders } from "@/lib/admin-data";
 import { formatPrice } from "@/lib/utils";
 import { StatusBadge } from "./status-badge";
@@ -102,7 +102,12 @@ export function OrdersTable({ rows }: { rows: Row[] }) {
       </tr></thead>
       <tbody>{pageRows.map(({ order, customer, itemCount }) => <tr key={order.id} className="border-t border-emerald-deep/6">
         <td className="px-4 py-4"><input type="checkbox" aria-label={`Select ${order.orderNumber}`} checked={selected.includes(order.id)} onChange={(event) => setSelected((current) => event.target.checked ? Array.from(new Set([...current, order.id])) : current.filter((id) => id !== order.id))}/></td>
-        <td className="px-4 py-4"><Link href={`/admin/orders/${order.id}`} className="font-bold text-emerald-deep hover:text-gold">{order.orderNumber}</Link></td>
+        <td className="px-4 py-4">
+          <p className="font-bold text-emerald-deep">{order.orderNumber}</p>
+          <Link href={`/admin/orders/${order.id}`} className="mt-1 inline-flex min-h-11 items-center gap-1 text-xs font-semibold text-emerald-deep underline decoration-gold/60 underline-offset-4 transition hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold">
+            Order Details <ArrowRight aria-hidden="true" className="size-3.5"/>
+          </Link>
+        </td>
         <td className="px-4 py-4">{customer.fullName}<p className="text-xs text-stone-400">{customer.whatsapp}</p></td>
         <td className="px-4 py-4 text-xs text-stone-500">{customer.phone}</td>
         <td className="px-4 py-4 text-xs text-stone-500">{order.createdAt.toLocaleString("en-PK")}</td>
